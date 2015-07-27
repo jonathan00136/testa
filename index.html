@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="jquery-2.1.4.min.js"></script>
+    <script src="Scripts/jquery.jqGrid.min.js"></script>
+    <script type="text/ecmascript" src="Scripts/i18n/grid.locale-en.js"></script>
+    <link href="jquery-ui-1.9.2.custom.css" rel="stylesheet" />
+    <link href="ui.jqgrid.css" rel="stylesheet" />
+    <script src="Chart.min.js"></script>
+
+    <meta charset="utf-8" />
+    <title>test</title>
+</head>
+<body>
+    <table id="jqGrid"></table>
+    <div id="jqGridPager"></div>
+    <canvas id="canvas" width="300" height="200"></canvas>
+    <canvas id="countries" width="300" height="200"></canvas>
+    <canvas id="chart" width="300" height="300"></canvas>
+    serch: <input type="text" id="serch" value="name" />
+    <button id="clear" onclick="myFunction()">Try it</button>
+
+    <script>
+         var ason = null;
+         var json = null;
+         function myFunction() {
+
+             $(document).ready(function ()
+             {
+                 sname = document.getElementById("serch").value;
+                     var url = 'http://zoomin.ws/API_REST/listlogsp?fid=' + sname + '&i={I}'
+                     var url2 = 'http://zoomin.ws/API_REST/listlogf?fid=' + sname + '&i={I}'
+                     $.getJSON(url, function (result) {
+                         $.getJSON(url2, function (data2) {
+                             $.each(result, function (i, field) {
+
+                                 ason = $.parseJSON(data2.listlogfGResult);
+                                 fuk(ason);
+
+                                 json = $.parseJSON(result.listlogspGResult);
+                                 line(json);
+
+
+                             });
+                         });
+                     });
+             });
+         };
+
+         function fuk(ason) {
+             $("#jqGrid").jqGrid("GridUnload");
+                 $("#jqGrid").jqGrid({
+
+                     datatype: "local",
+                     data: ason,
+                     colNames: ['logType', 'functionName', 'returnData', 'createDate'],
+                     colModel: [
+                        {
+                            name: 'logType',
+                            index: 'logType',
+                            width: 20
+                        },
+                        {
+                            name: 'functionName',
+                            index: 'functionName',
+                            width: 30
+                        },
+                        {
+                            name: 'returnData',
+                            index: 'returnData',
+                            width: 100
+                        },
+                        {
+                            name: 'createDate',
+                            index: 'createDate',
+                            width: 30
+                        },
+                     ],
+                     viewrecords: true,
+                     width: 800,
+                     height: 400,
+                     rowNum: 20,
+                     pager: "#jqGridPager"
+
+                 });
+
+         };
+
+         function line(json) {
+
+             var data = null;
+             var chartjsData = [];
+             var namedata = [];
+             var typedata = [];
+             data = json;
+             for (var i = 0; i < data.length; i++) {
+                 namedata.push(data[i].functionName);
+                 typedata.push(data[i].logType);
+                 chartjsData.push(data[i].num);
+             }
+
+             var barChartData = {
+                 labels: [typedata[0], typedata[1], typedata[2]],
+                 datasets: [{
+                     fillColor: "rgba(220,280,220,0.5)",
+                     strokeColor: "rgba(220,220,220,1)",
+                     data: chartjsData
+
+                 }]
+             };
+             var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Bar(barChartData);
+
+             var pieData = [
+                               {
+                                   value: chartjsData[0],
+                                   color: "#46BFBD",
+                                   highlight: "#5AD3D1",
+                                   label: typedata[0]
+                               },
+                               {
+                                   value: chartjsData[1],
+                                   color: "#F7464A",
+                                   highlight: "#FF5A5E",
+                                   label: typedata[1]
+                               },
+                               {
+                                   value: chartjsData[2],
+                                   color: "#FDB45C",
+                                   highlight: "#FFC870",
+                                   label: typedata[2]
+                               }
+             ];
+             // pie chart options
+             var pieOptions = {
+                 segmentShowStroke: true,
+                 animateScale: false
+             }
+
+             var myPie = new Chart(document.getElementById("countries").getContext("2d")).Doughnut(pieData, pieOptions);
+             myLine.clear();
+
+
+             // get pie chart canvas
+             //var countries = document.getElementById("countries").getContext("2d");
+             // draw pie chart
+             //new Chart(countries).Doughnut(pieData, pieOptions);
+
+        };
+    </script>
+</body>
+</html>
